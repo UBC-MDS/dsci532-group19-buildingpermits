@@ -1,9 +1,9 @@
 # Team Contract
 ## Team members:
-Alexander Tacuik 
-Revathy Ponnambalam
-Spencer Gerlach
-Waiel Tinwala
+- Alexander Tacuik 
+- Revathy Ponnambalam
+- Spencer Gerlach
+- Waiel Tinwala
 ## Expectations
 The project’s expectations will be based on completing specific milestones and tasks, rather than on minimum or maximum number of hours worked. Each team member has a responsibility to complete their assigned sections according to the agreed-upon deadlines. 
 To ensure quality work, all submissions must meet the milestone criteria,including the code, testing and proper grammar in written submission. 
@@ -11,9 +11,8 @@ If a team member is unable to meet the deadline, they should communicate this to
 ## Meeting schedule 
 First team meeting happened on 13th February 2023 and the subsequent meeting schedule was established during the meeting. Weekly meetings will take place in the ORCH 4074 during the lab time on Monday and on Thursday at 4pm, with the possibility of zoom meeting or meeting in other locations if necessary.
 
-
-| Meeting Date | Meeting Time | Location | Meeting Type|
-| :---: | :---: | :---: | :---: | :---: | 
+| Meeting Date | Meeting Time | Location | Meeting Type |
+|-------------------|--------------------|--------------------|--------------------|
 |2023-02-13| 14:00-16:00 | Lab Room 4074 | Kickoff Meeting | 
 |2023-02-16| 16:00-16:30 | Lab Room 4074 | Pre-submission Meeting | 
 |2023-02-27| 14:00-16:00 | Lab Room 4074 | Milestone 2 Meeting |
@@ -23,7 +22,6 @@ First team meeting happened on 13th February 2023 and the subsequent meeting sch
 |2023-03-13| 14:00-16:00 | Lab Room 4074 | Milestone 4 Meeting |
 |2023-03-16| 16:00-16:30 | Lab Room 4074 | Pre-submission Meeting | 
 
-
 There will not be any changes in the meeting schedule above while other additional meetings are subject to rescheduling. Additional meetings will be arranged via slack as needed and the meeting time can also be adjusted based on everyone's availability .
 
 ## Communication
@@ -32,10 +30,10 @@ Slack and Github are the primary communication tools for this project. Github wi
 All members are expected to submit a pull request for their work on the repository for the group project on Github.com. Members are expected to add teammates as reviewers to all pull requests. The specific reviewer does not need to be specified, and can be discussed by group members at the time. The person who created the pull request is responsible for ensuring the pull request is reviewed within 24 hours.
 ## Roles
 For every milestone, team members will be given the role as scribe or Proof reader. The roles are as follows:
-### Scribe:
+#### Scribe:
 Responsible for taking notes during the meetings and in-class lab sessions and adding them as a GitHub issue.
 Responsible for sharing all notes and in-class activities to teammates.
-### Proof-reader
+#### Proof-reader
 Responsible for doing a final check of the submission before the deadline to make sure all requirements are satisfied. All issues are to be cross-checked and closed before submitting each milestone. 
 The Proof reader will also notify the team members that the release has been made. 
 The schedule for proofreading are as follows:
@@ -43,7 +41,7 @@ Milestone 1: Spencer Gerlach
 Milestone 2: Revathy Ponnambalam
 Milestone 3: Waiel Tinwala
 Milestone 1: Alexander Tacuik
-### Pull-request reviews
+#### Pull-request reviews
 Each pull request should be reviewed by 1 person. I.e. each week one person is responsible for their portion of the work, and reviewing one pull request.
 Positions will be rotated weekly to ensure that each team member performs each role once with the exception of the pull-request reviews.
 ## Deadlines
