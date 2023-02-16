@@ -1,0 +1,13 @@
+name: shiny_test
+title: shiny_test
+username:
+account: revathyponn
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8318166
+bundleId: 6848811
+url: https://revathyponn.shinyapps.io/shiny_test/
+when: 1676453690.02442
+lastSyncTime: 1676453690.02444
+asMultiple: FALSE
+asStatic: FALSE
