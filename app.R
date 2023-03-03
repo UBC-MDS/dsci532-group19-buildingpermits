@@ -47,7 +47,7 @@ ui <- fluidPage("Building Permits",
                                                                     # choices = c("Multiple Dwelling", "Laneway House"), # need to fix this, make it a better list
                                                                     selected = 'Multiple Dwelling',
                                                                     options = list(`actions-box` = TRUE),
-                                                                    multiple = T),
+                                                                    multiple = TRUE),
                                           
                                           # select the date range
                                           dateRangeInput(inputId = 'dateRange',
@@ -72,6 +72,14 @@ ui <- fluidPage("Building Permits",
                                                       max = max(permit_data$ProjectValue),
                                                       value = c(min(permit_data$ProjectValue), max(permit_data$ProjectValue))
                                           ),
+                                          
+                                          # select the type of work
+                                          shinyWidgets::pickerInput(inputId = 'type_of_work',
+                                                                    label = 'Type of Work',
+                                                                    choices = unique(permit_data$TypeOfWork),
+                                                                    selected = 'New Building',
+                                                                    options = list(`actions-box` = TRUE),
+                                                                    multiple = TRUE)
                              ),
                              mainPanel(
                                fluidRow(
@@ -95,7 +103,7 @@ ui <- fluidPage("Building Permits",
                                  column(6,
                                         selectInput(inputId = 'category',
                                                     label = 'Group By',
-                                                    choices = c('GeoLocalArea')
+                                                    choices = c('GeoLocalArea', 'TypeOfWork')
                                         ),
                                         plotOutput(outputId = 'linechart'))
                                )
@@ -124,7 +132,10 @@ server <- function(input, output, session) {
                     PermitElapsedDays > input$elapsedDays[1], 
                     
                     input$projectValue[2] > ProjectValue, # project value
-                    ProjectValue > input$projectValue[1]) 
+                    ProjectValue > input$projectValue[1],
+                    
+                    TypeOfWork %in% input$type_of_work # type of work
+                   ) 
   }) 
   
   
@@ -136,7 +147,6 @@ server <- function(input, output, session) {
       addCircleMarkers(lng=~Longitude, lat=~Latitude,stroke = FALSE, fillOpacity = 0.1,
                        color =  'pink',
                        weight = 3,
-                       radius =  5,
                        group = 'building locations', 
                        label = lapply(permit_data$label,HTML)
       )
@@ -148,7 +158,7 @@ server <- function(input, output, session) {
     # adding histogram
     
     ggplot2::ggplot(data = filtered_data(), 
-                    ggplot2::aes(x = filtered_data()[[input$selected_variable]])
+                    ggplot2::aes_string(x = input$selected_variable)
     ) +
       ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
                               fill = "grey",
@@ -156,7 +166,8 @@ server <- function(input, output, session) {
                               bins = 50,
                               alpha = 0.3
       ) +
-      ggplot2::scale_x_continuous(labels = scales::comma)
+      ggplot2::scale_x_continuous(labels = scales::comma) +
+      ggplot2::theme_classic()
   })
   
   output$linechart <- renderPlot({
@@ -167,6 +178,7 @@ server <- function(input, output, session) {
                                             y = 'ProjectValue',
                                             color = input$category)) +
       ggplot2::geom_line(stat = 'summary') +
+      ggplot2::theme_classic() +
       ggplot2::theme(legend.position = 'none')
   })
   
