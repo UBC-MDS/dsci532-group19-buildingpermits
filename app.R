@@ -6,14 +6,18 @@ library(shinyWidgets)
 library(htmltools)
 library(leaflet.extras)
 library(sf)
+library(lubridate)
 
+options(shiny.autoreload = TRUE)
 
 #load data 
-permit_data<- read.csv('data/permit_cleaned.csv') |> dplyr::filter(stringr::str_detect(PropertyUse, "Dwelling Uses"))
+permit_data <- read.csv('data/permit_cleaned.csv') |> dplyr::filter(stringr::str_detect(PropertyUse, "Dwelling Uses"))
 permit_data <- separate(permit_data, col = geo_point_2d, into= c("Latitude","Longitude"), sep = ", ")
-permit_data$Longitude<- as.numeric(permit_data$Longitude)
-permit_data$Latitude<- as.numeric(permit_data$Latitude)
-permit_data$label<- paste("<p> Permit Number:", permit_data$PermitNumber,
+permit_data$Longitude <- as.numeric(permit_data$Longitude)
+permit_data$Latitude <- as.numeric(permit_data$Latitude)
+permit_data$ProjectValue <- as.numeric(permit_data$ProjectValue)
+permit_data$YearMonth <- ym(permit_data$YearMonth)
+permit_data$label <- paste("<p> Permit Number:", permit_data$PermitNumber,
                           "<p> Permit Issue Date:", permit_data$IssueDate,
                           "<p> Project Value: $", permit_data$ProjectValue,
                           "<p> Type Of Work:", permit_data$TypeOfWork,
@@ -27,8 +31,7 @@ ui <- fluidPage("Building Permits",
                 tabsetPanel(
                   tabPanel("Spatial Visualisaton of Housing Permit",
                            sidebarLayout(
-                             sidebarPanel(width = 2,
-                                          
+                             sidebarPanel(
                                           # select the neighbourhood
                                           shinyWidgets::pickerInput(inputId = 'neighbourhood',
                                                                     label = 'select the neighbourhood:',
@@ -44,7 +47,7 @@ ui <- fluidPage("Building Permits",
                                                                     # choices = c("Multiple Dwelling", "Laneway House"), # need to fix this, make it a better list
                                                                     selected = 'Multiple Dwelling',
                                                                     options = list(`actions-box` = TRUE),
-                                                                    multiple = T),
+                                                                    multiple = TRUE),
                                           
                                           # select the date range
                                           dateRangeInput(inputId = 'dateRange',
@@ -69,15 +72,25 @@ ui <- fluidPage("Building Permits",
                                                       max = max(permit_data$ProjectValue),
                                                       value = c(min(permit_data$ProjectValue), max(permit_data$ProjectValue))
                                           ),
+                                          
+                                          # select the type of work
+                                          shinyWidgets::pickerInput(inputId = 'type_of_work',
+                                                                    label = 'Type of Work',
+                                                                    choices = unique(permit_data$TypeOfWork),
+                                                                    selected = 'New Building',
+                                                                    options = list(`actions-box` = TRUE),
+                                                                    multiple = TRUE)
                              ),
                              mainPanel(
                                fluidRow(
-                                 column(6,
+                                 column(12,
                                         leaflet::leafletOutput(outputId = "locations")),
-                                 
+                               ),
+                               
+                               fluidRow(
                                  column(6,
-                                        selectInput('selected_variable', 
-                                                    "Select variable to plot", 
+                                        selectInput(inputId = 'selected_variable', 
+                                                    label = "Select variable to plot", 
                                                     choices=c('Cost of project construction' = "ProjectValue", 
                                                               'Number of days before permit approval' = 'PermitElapsedDays'),
                                                     selected = 'Cost of project construction'
@@ -85,7 +98,14 @@ ui <- fluidPage("Building Permits",
                                         ),
                                         plotOutput(outputId = "histogram")
                                         
-                                 )
+                                 ),
+                                 
+                                 column(6,
+                                        selectInput(inputId = 'category',
+                                                    label = 'Group By',
+                                                    choices = c('GeoLocalArea', 'TypeOfWork')
+                                        ),
+                                        plotOutput(outputId = 'linechart'))
                                )
                              )
                            )
@@ -112,7 +132,10 @@ server <- function(input, output, session) {
                     PermitElapsedDays > input$elapsedDays[1], 
                     
                     input$projectValue[2] > ProjectValue, # project value
-                    ProjectValue > input$projectValue[1]) 
+                    ProjectValue > input$projectValue[1],
+                    
+                    TypeOfWork %in% input$type_of_work # type of work
+                   ) 
   }) 
   
   
@@ -124,7 +147,6 @@ server <- function(input, output, session) {
       addCircleMarkers(lng=~Longitude, lat=~Latitude,stroke = FALSE, fillOpacity = 0.1,
                        color =  'pink',
                        weight = 3,
-                       radius =  5,
                        group = 'building locations', 
                        label = lapply(permit_data$label,HTML)
       )
@@ -136,7 +158,7 @@ server <- function(input, output, session) {
     # adding histogram
     
     ggplot2::ggplot(data = filtered_data(), 
-                    ggplot2::aes(x = filtered_data()[[input$selected_variable]])
+                    ggplot2::aes_string(x = input$selected_variable)
     ) +
       ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
                               fill = "grey",
@@ -144,7 +166,20 @@ server <- function(input, output, session) {
                               bins = 50,
                               alpha = 0.3
       ) +
-      ggplot2::scale_x_continuous(labels = scales::comma)
+      ggplot2::scale_x_continuous(labels = scales::comma) +
+      ggplot2::theme_classic()
+  })
+  
+  output$linechart <- renderPlot({
+    # generate timeline charts
+    
+    ggplot2::ggplot(data = filtered_data(),
+                    ggplot2::aes_string(x = 'YearMonth',
+                                            y = 'ProjectValue',
+                                            color = input$category)) +
+      ggplot2::geom_line(stat = 'summary') +
+      ggplot2::theme_classic() +
+      ggplot2::theme(legend.position = 'none')
   })
   
 }
