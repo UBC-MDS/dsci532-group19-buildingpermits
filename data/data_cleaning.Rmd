@@ -1,0 +1,73 @@
+
+```{r imports}
+library(readr)
+library(here)
+library(tidyverse)
+library(sf)
+```
+
+```{r load-data}
+csv_permits_path <- here::here('data/raw/', 'issued-building-permits.csv')
+geojson_permits_path <- here::here('data/raw', 'issued-building-permits.geojson')
+local_area_boundary_path <- here::here('data/raw', 'local-area-boundary.geojson')
+
+# permits csv
+csv_permits <- readr::read_delim(file = csv_permits_path, delim = ";")
+
+# permits geojson
+geo_permits <- sf::st_read(geojson_permits_path)
+
+# neighbourhoods geojson
+geo_nbhds <- sf::st_read(local_area_boundary_path)
+```
+
+```{r}
+
+# Filter the geo permits data
+geo_permits <- geo_permits |> 
+  dplyr::filter(stringr::str_detect(propertyuse, "Dwelling Uses")) |>
+  dplyr::filter(typeofwork %in% c("Addition / Alteration", "New Building")) |>
+  dplyr::select(-c("buildingcontractor", "buildingcontractoraddress", "permitcategory")) |>
+  tidyr::drop_na(c("address", "applicantaddress", "propertyuse", "specificusecategory", "geolocalarea", "geometry", "geo_point_2d"))
+
+# Filter the csv permits data
+csv_permits <- csv_permits |> 
+  dplyr::filter(stringr::str_detect(PropertyUse, "Dwelling Uses")) |>
+  dplyr::filter(TypeOfWork %in% c("Addition / Alteration", "New Building")) |>
+  dplyr::select(-c("BuildingContractor", "BuildingContractorAddress", "PermitCategory")) |>
+  tidyr::drop_na(c("Address", "ApplicantAddress", "PropertyUse", "SpecificUseCategory", "GeoLocalArea", "geo_point_2d"))
+```
+
+```{r}
+# Spatial join geo permits to geo neighbourhoods
+joined <- sf::st_join(geo_nbhds, geo_permits)
+geo_nbhd_summary <- joined |>
+  group_by(mapid, name) |>
+  summarize(elapsed_days_avg = mean(permitelapseddays),
+            elapsed_days_25q = quantile(permitelapseddays, probs = c(.25), na.rm = TRUE),
+            elapsed_days_50q = median(permitelapseddays, na.rm = TRUE),
+            elapsed_days_75q = quantile(permitelapseddays, probs = c(.75), na.rm = TRUE),
+            project_value_avg = mean(projectvalue, na.rm = TRUE),
+            project_value_25q = quantile(projectvalue, probs = c(.25), na.rm = TRUE),
+            project_value_50q = median(projectvalue, na.rm = TRUE),
+            project_value_75q = quantile(projectvalue, probs = c(.75), na.rm = TRUE),
+            count_permits = dplyr::n())
+
+geo_nbhd_summary_long <- geo_nbhd_summary |>
+  tidyr::pivot_longer(cols = -c("mapid", "name", "geometry"), names_to = "stat", values_to = "value")
+```
+
+
+```{r}
+
+# write the geo neighbourhood summary
+geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
+geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
+
+sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
+sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
+
+# write the cleaned csv
+csv_write_path <- here('data/clean', "permit_cleaned.csv")
+readr::write_csv(csv_permits, csv_write_path)
+```
