@@ -16,8 +16,8 @@ options(shiny.autoreload = TRUE)
 permit_data <- read.csv('data/clean/permit_cleaned.csv') 
 # Formatting
 permit_data$ProjectValue <- as.numeric(permit_data$ProjectValue)
-permit_data$YearMonth <- lubridate::ym(permit_data$YearMonth)
-unique_SUC <- csv_permits |>
+permit_data$YearMonth <- lubridate::ymd(permit_data$YearMonth)
+unique_SUC <- permit_data |>
   tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
   dplyr::distinct(SpecificUseCategory)
 unique_SUC <- sort(unique_SUC$SpecificUseCategory)
@@ -245,16 +245,15 @@ server <- function(input, output, session) {
   # ==== Line Chart ====
   output$linechart <- renderPlot({
     # generate line charts
-
     ggplot2::ggplot(data = filtered_data(),
                     ggplot2::aes_string(x = 'YearMonth',
-                                        y = input$selected_variable,
-                                        color = input$selected_variable)) +
-      ggplot2::geom_line(stat = 'summary', fun = sum) +
+                                        y = 'ProjectValue',
+                                        color = input$category)) +
+      ggplot2::geom_line(stat = 'summary', fun = mean) +
       ggplot2::scale_y_continuous(labels = scales::comma) +
       ggplot2::theme_classic() +
       ggplot2::theme(legend.position = 'none') +
-      # ggplot2::facet_wrap(~filtered_data()[[input$category]]) +
+      ggplot2::facet_wrap(~filtered_data()[[input$category]]) +
       ggplot2::labs(x = names(plot_group[which(plot_group == input$category)]), 
                     y = names(plot_variable[which(plot_variable == input$selected_variable)]))
   })
