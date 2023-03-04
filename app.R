@@ -17,11 +17,11 @@ permit_data <- read.csv('data/clean/permit_cleaned.csv')
 # Formatting
 permit_data$ProjectValue <- as.numeric(permit_data$ProjectValue)
 permit_data$YearMonth <- lubridate::ymd(permit_data$YearMonth)
-unique_SUC <- permit_data |>
-  tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
-  dplyr::distinct(SpecificUseCategory)
-unique_SUC <- sort(unique_SUC$SpecificUseCategory)
-unique_SUC <- tibble('SpecificUseCategory' = unique_SUC)
+# unique_SUC <- permit_data |>
+#   tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
+#   dplyr::distinct(SpecificUseCategory)
+# unique_SUC <- sort(unique_SUC$SpecificUseCategory)
+# unique_SUC <- tibble('SpecificUseCategory' = unique_SUC)
 
 # Neighbourhood Data 
 nbhd_data <- sf::st_read("data/clean/geo_nbhd_summary_long.geojson")
@@ -51,15 +51,15 @@ plot_group <- c('Neighbourhood' ='GeoLocalArea',
                 'Type of construction project' = 'TypeOfWork')
 
 # Create variable references for chloropleth map
-chlor_ref <- c('Elapsed Days Before Approval: Average' = 'elapsed_days_avg',
+chlor_ref <- c('Building Permit Count' = 'count_permits',
+               'Elapsed Days Before Approval: Average' = 'elapsed_days_avg',
                'Elapsed Days Before Approval: 25th Quantile' = 'elapsed_days_25q',
                'Elapsed Days Before Approval: Median' = 'elapsed_days_50q',
                'Elapsed Days Before Approval: 75th Quantile' = 'elapsed_days_75q',
                'Project Value ($): Average' = 'project_value_avg',
                'Project Value ($): 25th Quantile' = 'project_value_25q',
                'Project Value ($): Median' = 'project_value_50q',
-               'Project Value ($): 75th Quantile' = 'project_value_75q',
-               'Building Permit Count' = 'count_permits')
+               'Project Value ($): 75th Quantile' = 'project_value_75q')
 
 
 # ==== UI ====
@@ -71,7 +71,7 @@ ui <- fluidPage("Building Permits",
                              sidebarPanel(
                                           # select the neighbourhood
                                           shinyWidgets::pickerInput(inputId = 'neighbourhood',
-                                                                    label = 'Select the neighbourhood:',
+                                                                    label = 'Select Neighbourhood:',
                                                                     choices = unique(permit_data$GeoLocalArea),  
                                                                     selected = unique(permit_data$GeoLocalArea),
                                                                     options = list(`actions-box` = TRUE),
@@ -79,9 +79,45 @@ ui <- fluidPage("Building Permits",
                                           
                                           # select the building type
                                           shinyWidgets::pickerInput(inputId = 'specificUse',
-                                                                    label = 'Select the building type:',
-                                                                    choices = unique_SUC,
-                                                                    selected = 'Multiple Dwelling',
+                                                                    label = 'Select Building Type:',
+                                                                    choices = c(
+                                                                      # Common quick-search categories
+                                                                      'Detached House', 
+                                                                      'Duplex',
+                                                                      'Infill',
+                                                                      'Laneway House', 
+                                                                      'Micro Dwelling', 
+                                                                      'Multiple Dwelling', 
+                                                                      'Rowhouse',
+                                                                      # Specific dwelling categories from the data
+                                                                      "Duplex w/Secondary Suite",
+                                                                      "Dwelling Unit",
+                                                                      "Dwelling Unit w/ Other Use",
+                                                                      "Freehold Rowhouse",
+                                                                      "Housekeeping Unit",
+                                                                      "Infill Multiple Dwelling",
+                                                                      "Infill Single Detached House",
+                                                                      "Infill Two-Family Dwelling",
+                                                                      "Multiple Conv Dwelling w/ Family Suite",
+                                                                      "Multiple Conv Dwelling w/ Sec Suite",
+                                                                      "Multiple Conversion Dwelling",
+                                                                      "Not Applicable",
+                                                                      "Principal Dwelling Unit w/Lock Off",
+                                                                      "Residential/Business Unit",
+                                                                      "Residential Unit Associated w/ an Artist Studio",
+                                                                      "Rooming House",
+                                                                      "Secondary Suite",
+                                                                      "Seniors Supportive/Assisted Housing",
+                                                                      "Single Detached House",
+                                                                      "Single Detached House w/Sec Suite",
+                                                                      "Sleeping Unit",
+                                                                      "Temporary Modular Housing",
+                                                                      "1FD on Sites w/ More Than One Principal Building",
+                                                                      "1FD w/ Family Suite",
+                                                                      "2FD on Sites w/ Mult Principal Bldg"),
+                                                                    selected = c(
+                                                                      # Common inquiry
+                                                                      'Multiple Dwelling'),
                                                                     options = list(`actions-box` = TRUE,
                                                                                    `liveSearch` = TRUE),
                                                                     multiple = TRUE),
