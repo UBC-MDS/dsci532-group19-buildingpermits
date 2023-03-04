@@ -1,40 +1,53 @@
 # Vancouver Building Permit Exploration
+
 - Authors: Spencer Gerlach, Alex Taciuk, Revathy Ponnambalam, Waiel Tinwala
 
-This is a dashboard made with shiny app and is created for people or organizations in Vancouver that depend on development insights from building permit data, but are unable to access them due to various technical or other accessiblity constraints. 
+<img src="img/app-demo_2023-03-04.gif">
 
-The dashboards main landing page consists of just a map of the city of Vancouver and a button on the top left corner of the app. This map is interactive and can be zoomed in and out to move around and select different areas on the map as they get highlighted when the cursor hovers over them.
+## Dashboard Motivation: Why?
 
-Clicking on the top left button brings up a left side panel revealing filtering options for the data. Clicking any highlighted part on the map will open a bigger right side panel with more visualizations such as bar charts, histograms, time lines, etc. These visualizations on the right panel may have their own sliders (or buttons) to tweak certain settings to obtain the users desired visualization.
+Our dashboard is a shiny app created for people or organizations in Vancouver that depend on development insights from building permit data, but are unable to access them due to various technical or other accessiblity constraints. 
 
-Visualizations of interest include the following (to be decided upon via consultation with target audience). Filters will include year, neighbourhood, and development type.
+## Dashboard Contents: What?
 
-Line charts
+Upon launch of the shiny app, users are met with a detailed summary of Vancouver building permit data. Users can toggle between two different tabs, showing different levels of summary information. The two tabs are described below. 
 
-* Dwelling units by year approved
-* Total project value by year approved
-* Approval timeline by year submitted
+### Tab 1: Spatial Visualization of Housing Permit
 
-Histograms
+> Users can explore different data filters using the filter pane on the left side. These filters will update the three main visuals on the page. Users can filter permits based on neighbourhood, building type, approval date range, etc.
 
-* Project values 
-* Approval timelines
-* Dwelling units
+The summary visuals on page 1 are comprised of:
 
-Scatterplots
+1. **Permit Location Map:** Users can find individual permits on a map, and hover over each permit location to see an expanded list of information about the permit.
 
-* Approval timeline vs. project value
+2. **Summary Histogram:** Users can view the distribution of permits based on the project value (CAD), or by the number of days elapsed before the building permit was approved.
 
-City-wide choropleths
+3. **Faceted Line Chart:** Users can view the trends in project value or days for approval over time. Users can decide to facet charts by neighbourhood (multiple options) or by the type of building  (two options).
 
-* Number of permits
-* Number of dwelling units
-* Project value
-<br>
-<br>
-<br>
-<img src="img/dashboard_design_page1.png">
-<img src="img/dashboard_design_page2.png">
+#### Example View:
+
+
+<img src="img/tab1-example_2023-03-04.png">
+
+### Tab 2: Neighbourhood Analysis
+
+> Users can explore building permit data summarized to Vancouver's neighbourhood boundaries. Users can decide between various summary statistics.
+
+- Users can first decide between various building permit summary statistics using the filter pane on the left side of the page. Options include various statistics for project value ($CAD), permit approval timelines, 
+- Based on the selection, the neighbourhood map will dynamically update to show that statistic. Darker colors represent larger values.
+- Users can hover their mouse over each neighbourhood to see the neighbourhood name and the value of the chosen summary statistic.
+
+#### Example View:
+
+<img src="img/tab2-example_2023-03-04.png">
+
+## Contribution to the Dashboard: How?
+
+Interested in contributing to this dashboard? Instructions and guidelines for contributing to our project can be found in the `CONTRIBUTING.MD` file in this repository.
+
+We are excited about this product, and welcome any suggestions for improvement. Specific suggestions about use-cases can help our team develop a truly useful app that people will use and build value from.
+
+Thank you for considering contributing to our dashboard!
 
 # License
 Licensed under the terms of the MIT license.
