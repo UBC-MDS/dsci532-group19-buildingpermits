@@ -70,16 +70,16 @@ geo_nbhd_summary_long <- geo_nbhd_summary |>
 
 # Data Writing
 ```{r}
-# write the geo neighbourhood summary
-geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
-geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
-
-sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
-sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
-
-# write the cleaned csv
-csv_write_path <- here('data/clean', "permit_cleaned.csv")
-readr::write_csv(csv_permits, csv_write_path, append = FALSE)
+# # write the geo neighbourhood summary
+# geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
+# geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
+# 
+# sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
+# sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
+# 
+# # write the cleaned csv
+# csv_write_path <- here('data/clean', "permit_cleaned.csv")
+# readr::write_csv(csv_permits, csv_write_path, append = FALSE)
 ```
 
 ~~~~~~~~~~~
@@ -106,4 +106,106 @@ readr::write_csv(csv_permits, csv_write_path, append = FALSE)
 # unique_SUC <- sort(unique_SUC$SpecificUseCategory)
 # 
 # unique_SUC <- tibble('SpecificUseCategory' = unique_SUC)
+# 
+# unique_SUC
 ```
+
+```{r}
+
+# csv_permits2 <- csv_permits
+# 
+# csv_permits2$SpecificUseCategory <- ifelse(str_detect(csv_permits2$SpecificUseCategory, ","), "Mixed", csv_permits2$SpecificUseCategory)
+# 
+# unique(csv_permits2$SpecificUseCategory)
+```
+
+
+```{r}
+# choices <- c('Multiple Dwelling', 'Rowhouse', 'Duplex', 'Detached House', 'Laneway House', 'Temporary Modular Housing', 'Micro Dwelling'
+#   )
+# 
+# choices <- sort(choices)
+# 
+# choices
+# 
+# new_choices <- c("Duplex","Single Detached House",
+# "Single Detached House w/Sec Suite","Laneway House",
+# "Multiple Dwelling","Infill Single Detached House",
+# "Mixed","Multiple Conversion Dwelling",                    
+# "Duplex w/Secondary Suite","Dwelling Unit",                                   
+# "Principal Dwelling Unit w/Lock Off","1FD w/ Family Suite",                             
+# "Rooming House","Infill Two-Family Dwelling",                      
+# "Micro Dwelling","Dwelling Unit w/ Other Use",                      
+# "Infill","Not Applicable",                                  
+# "Seniors Supportive/Assisted Housing","Infill Multiple Dwelling",                        
+# "Multiple Conv Dwelling w/ Family Suite","Temporary Modular Housing",                       
+# "Freehold Rowhouse","Residential/Business Unit",                       
+# "Sleeping Unit","Residential Unit Associated w/ an Artist Studio", 
+# "2FD on Sites w/ Mult Principal Bldg","Housekeeping Unit",                               
+# "1FD on Sites w/ More Than One Principal Building","Secondary Suite",                                 
+# "Multiple Conv Dwelling w/ Sec Suite")
+# 
+# sort(new_choices)
+# 
+# # get rid of 'Multiple Dwelling', 'Duplex', 'Laneway House', 'Temporary Modular Housing', 'Micro Dwelling', "Mixed"
+# new_choices2 <- c("Single Detached House","Single Detached House w/Sec Suite","Infill Single Detached House",
+#                   "Multiple Conversion Dwelling",
+#                   "Duplex w/Secondary Suite","Dwelling Unit",
+#                   "Principal Dwelling Unit w/Lock Off","1FD w/ Family Suite",
+#                   "Rooming House","Infill Two-Family Dwelling",
+#                   "Dwelling Unit w/ Other Use",
+#                   "Infill","Not Applicable",
+#                   "Seniors Supportive/Assisted Housing","Infill Multiple Dwelling",
+#                   "Multiple Conv Dwelling w/ Family Suite","Temporary Modular Housing",
+#                   "Freehold Rowhouse","Residential/Business Unit",
+#                   "Sleeping Unit","Residential Unit Associated w/ an Artist Studio", 
+#                   "2FD on Sites w/ Mult Principal Bldg","Housekeeping Unit",
+#                   "1FD on Sites w/ More Than One Principal Building","Secondary Suite",
+#                   "Multiple Conv Dwelling w/ Sec Suite")
+# 
+# new_choices3 <- c(
+#   # General categories
+#   'Detached House', 
+#   'Duplex', 
+#   'Laneway House', 
+#   'Micro Dwelling', 
+#   'Multiple Dwelling', 
+#   'Rowhouse', 
+#   'Temporary Modular Housing',
+#   # Specific categories from the data
+#   "Duplex w/Secondary Suite",
+#   "Dwelling Unit",
+#   "Dwelling Unit w/ Other Use",
+#   "Freehold Rowhouse",
+#   "Housekeeping Unit",
+#   "Infill",
+#   "Infill Multiple Dwelling",
+#   "Infill Single Detached House",
+#   "Infill Two-Family Dwelling",
+#   "Multiple Conv Dwelling w/ Family Suite",
+#   "Multiple Conv Dwelling w/ Sec Suite",
+#   "Multiple Conversion Dwelling",
+#   "Not Applicable",
+#   "Principal Dwelling Unit w/Lock Off",
+#   "Residential/Business Unit",
+#   "Residential Unit Associated w/ an Artist Studio",
+#   "Rooming House",
+#   "Seniors Supportive/Assisted Housing",
+#   "Single Detached House",
+#   "Single Detached House w/Sec Suite",
+#   "Sleeping Unit",
+#   "Temporary Modular Housing",
+#   "1FD on Sites w/ More Than One Principal Building",
+#   "1FD w/ Family Suite",
+#   "2FD on Sites w/ Mult Principal Bldg",
+#   "Secondary Suite"
+# )
+```
+
+
+
+
+
+
+
+
