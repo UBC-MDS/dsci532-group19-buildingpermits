@@ -1,11 +1,14 @@
 
+# Imports
 ```{r imports}
 library(readr)
 library(here)
 library(tidyverse)
 library(sf)
+library(lubridate)
 ```
 
+# Data Reading
 ```{r load-data}
 csv_permits_path <- here::here('data/raw/', 'issued-building-permits.csv')
 geojson_permits_path <- here::here('data/raw', 'issued-building-permits.geojson')
@@ -21,23 +24,31 @@ geo_permits <- sf::st_read(geojson_permits_path)
 geo_nbhds <- sf::st_read(local_area_boundary_path)
 ```
 
+# Data Cleaning
 ```{r}
 
-# Filter the geo permits data
+# Filter the csv and geo permits data to remove unimportant or NA data
 geo_permits <- geo_permits |> 
   dplyr::filter(stringr::str_detect(propertyuse, "Dwelling Uses")) |>
   dplyr::filter(typeofwork %in% c("Addition / Alteration", "New Building")) |>
   dplyr::select(-c("buildingcontractor", "buildingcontractoraddress", "permitcategory")) |>
   tidyr::drop_na(c("address", "applicantaddress", "propertyuse", "specificusecategory", "geolocalarea", "geometry", "geo_point_2d"))
 
-# Filter the csv permits data
 csv_permits <- csv_permits |> 
   dplyr::filter(stringr::str_detect(PropertyUse, "Dwelling Uses")) |>
   dplyr::filter(TypeOfWork %in% c("Addition / Alteration", "New Building")) |>
   dplyr::select(-c("BuildingContractor", "BuildingContractorAddress", "PermitCategory")) |>
   tidyr::drop_na(c("Address", "ApplicantAddress", "PropertyUse", "SpecificUseCategory", "GeoLocalArea", "geo_point_2d"))
-```
 
+# Clean fix data types in csv permits
+csv_permits <- separate(csv_permits, col = geo_point_2d, into= c("Latitude","Longitude"), sep = ", ")
+csv_permits$Longitude <- as.numeric(csv_permits$Longitude)
+csv_permits$Latitude <- as.numeric(csv_permits$Latitude)
+csv_permits$ProjectValue <- as.numeric(csv_permits$ProjectValue)
+csv_permits$YearMonth <- lubridate::ym(csv_permits$YearMonth)
+
+```
+# Spatial Join for Chloropleth
 ```{r}
 # Spatial join geo permits to geo neighbourhoods
 joined <- sf::st_join(geo_nbhds, geo_permits)
@@ -57,17 +68,40 @@ geo_nbhd_summary_long <- geo_nbhd_summary |>
   tidyr::pivot_longer(cols = -c("mapid", "name", "geometry"), names_to = "stat", values_to = "value")
 ```
 
+# Data Writing
+```{r}
+# # write the geo neighbourhood summary
+# geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
+# geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
+# 
+# sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
+# sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
+# 
+# # write the cleaned csv
+# csv_write_path <- here('data/clean', "permit_cleaned.csv")
+# readr::write_csv(csv_permits, csv_write_path, append = FALSE)
+```
 
+~~~~~~~~~~~
+
+# Data Exploration
 ```{r}
 
-# write the geo neighbourhood summary
-geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
-geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
-
-sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
-sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
-
-# write the cleaned csv
-csv_write_path <- here('data/clean', "permit_cleaned.csv")
-readr::write_csv(csv_permits, csv_write_path)
+# unique(csv_permits$SpecificUseCategory)
+# 
+# unique_propuse <- csv_permits |> 
+#   tidyr::separate_rows(PropertyUse, sep = ",") |>
+#   dplyr::distinct(PropertyUse)
+# 
+# unique_propuse
+# 
+# unique_propuse <- csv_permits |> 
+#   tidyr::separate_rows(PropertyUse, sep = ",") |>
+#   dplyr::distinct(PropertyUse)
+# 
+# unique_specpropuse <- csv_permits |> 
+#   tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
+#   dplyr::distinct(SpecificUseCategory)
+# 
+# sort(unique_specpropuse$SpecificUseCategory)
 ```
