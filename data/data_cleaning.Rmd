@@ -70,16 +70,16 @@ geo_nbhd_summary_long <- geo_nbhd_summary |>
 
 # Data Writing
 ```{r}
-# # write the geo neighbourhood summary
-# geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
-# geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
-# 
-# sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
-# sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
-# 
-# # write the cleaned csv
-# csv_write_path <- here('data/clean', "permit_cleaned.csv")
-# readr::write_csv(csv_permits, csv_write_path, append = FALSE)
+# write the geo neighbourhood summary
+geojson_write_path <- here('data/clean', "geo_nbhd_summary.geojson")
+geojson_write_path_long <- here('data/clean', "geo_nbhd_summary_long.geojson")
+
+sf::st_write(geo_nbhd_summary, geojson_write_path, append = FALSE)
+sf::st_write(geo_nbhd_summary_long, geojson_write_path_long, append = FALSE)
+
+# write the cleaned csv
+csv_write_path <- here('data/clean', "permit_cleaned.csv")
+readr::write_csv(csv_permits, csv_write_path, append = FALSE)
 ```
 
 ~~~~~~~~~~~
