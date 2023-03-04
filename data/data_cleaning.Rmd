@@ -89,19 +89,21 @@ readr::write_csv(csv_permits, csv_write_path, append = FALSE)
 
 # unique(csv_permits$SpecificUseCategory)
 # 
-# unique_propuse <- csv_permits |> 
+# unique_propuse <- csv_permits |>
 #   tidyr::separate_rows(PropertyUse, sep = ",") |>
 #   dplyr::distinct(PropertyUse)
 # 
 # unique_propuse
 # 
-# unique_propuse <- csv_permits |> 
+# unique_propuse <- csv_permits |>
 #   tidyr::separate_rows(PropertyUse, sep = ",") |>
 #   dplyr::distinct(PropertyUse)
-# 
-# unique_specpropuse <- csv_permits |> 
+
+# unique_SUC <- csv_permits |>
 #   tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
 #   dplyr::distinct(SpecificUseCategory)
 # 
-# sort(unique_specpropuse$SpecificUseCategory)
+# unique_SUC <- sort(unique_SUC$SpecificUseCategory)
+# 
+# unique_SUC <- tibble('SpecificUseCategory' = unique_SUC)
 ```
