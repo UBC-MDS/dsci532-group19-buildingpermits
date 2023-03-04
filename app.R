@@ -1,4 +1,4 @@
-# Load packages 
+# ==== Load packages ====
 library(shiny)
 library(leaflet)
 library(tidyr)
@@ -10,30 +10,59 @@ library(bslib)
 
 options(shiny.autoreload = TRUE)
 
-#load data 
-permit_data <- read.csv('data/permit_cleaned.csv') |> dplyr::filter(stringr::str_detect(PropertyUse, "Dwelling Uses"))
-permit_data <- separate(permit_data, col = geo_point_2d, into= c("Latitude","Longitude"), sep = ", ")
-permit_data$Longitude <- as.numeric(permit_data$Longitude)
-permit_data$Latitude <- as.numeric(permit_data$Latitude)
+# ==== Load Data ====
+
+# CSV permit data 
+permit_data <- read.csv('data/clean/permit_cleaned.csv') 
+# Formatting
 permit_data$ProjectValue <- as.numeric(permit_data$ProjectValue)
 permit_data$YearMonth <- lubridate::ym(permit_data$YearMonth)
-permit_data$label <- paste("<p> Permit Number:", permit_data$PermitNumber,
-                          "<p> Permit Issue Date:", permit_data$IssueDate,
-                          "<p> Project Value: $", permit_data$ProjectValue,
-                          "<p> Type Of Work:", permit_data$TypeOfWork,
-                          "<p> Address:", permit_data$Address,
-                          "<p> Category:", permit_data$SpecificUseCategory,
-                          "<p> Property Use:", permit_data$PropertyUse) 
+unique_SUC <- csv_permits |>
+  tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
+  dplyr::distinct(SpecificUseCategory)
+unique_SUC <- sort(unique_SUC$SpecificUseCategory)
+unique_SUC <- tibble('SpecificUseCategory' = unique_SUC)
 
-# these two are for the variable name in the charts, they're needed
+# Neighbourhood Data 
+nbhd_data <- sf::st_read("data/clean/geo_nbhd_summary_long.geojson")
+
+
+# ==== Housekeeping ====
+
+# Create labels for the permit data point popups
+permit_data$label <- paste("<p><b>Permit Number:</b>", permit_data$PermitNumber,
+                           "<p><b>Permit Issue Date:</b>", permit_data$IssueDate,
+                           "<p><b>Project Value: </b>$", format(round(permit_data$ProjectValue,0), big.mark = ","),
+                           "<p><b>Type Of Work:</b>", permit_data$TypeOfWork,
+                           "<p><b>Address:</b>", permit_data$Address,
+                           "<p><b>Building Category:</b>", permit_data$SpecificUseCategory,
+                           "<p><b>Property Use:</b>", permit_data$PropertyUse) 
+
+# Create labels for the neighbourhood map popups
+nbhd_data$label <- paste("<p><b>Neighbourhood:</b>", nbhd_data$name,
+                         "<p><b>Value:</b>", round(nbhd_data$value, 0))
+
+# Create variable references for filter selection
 plot_variable <- c('Cost of project construction ($CAD)' = "ProjectValue", 
-                  'Number of days before permit approval' = 'PermitElapsedDays')
+                   'Number of days before permit approval' = 'PermitElapsedDays')
 
-# these two are for the variable name in the charts, they're needed
+# Create variable references for filter selection
 plot_group <- c('Neighbourhood' ='GeoLocalArea', 
-                  'Type of construction project' = 'TypeOfWork')
+                'Type of construction project' = 'TypeOfWork')
 
-# Define UI for application   draws a histogram
+# Create variable references for chloropleth map
+chlor_ref <- c('Elapsed Days Before Approval: Average' = 'elapsed_days_avg',
+               'Elapsed Days Before Approval: 25th Quantile' = 'elapsed_days_25q',
+               'Elapsed Days Before Approval: Median' = 'elapsed_days_50q',
+               'Elapsed Days Before Approval: 75th Quantile' = 'elapsed_days_75q',
+               'Project Value ($): Average' = 'project_value_avg',
+               'Project Value ($): 25th Quantile' = 'project_value_25q',
+               'Project Value ($): Median' = 'project_value_50q',
+               'Project Value ($): 75th Quantile' = 'project_value_75q',
+               'Building Permit Count' = 'count_permits')
+
+
+# ==== UI ====
 ui <- fluidPage("Building Permits",
                 theme = bslib::bs_theme(bootswatch = "flatly"),
                 tabsetPanel(
@@ -42,7 +71,7 @@ ui <- fluidPage("Building Permits",
                              sidebarPanel(
                                           # select the neighbourhood
                                           shinyWidgets::pickerInput(inputId = 'neighbourhood',
-                                                                    label = 'select the neighbourhood:',
+                                                                    label = 'Select the neighbourhood:',
                                                                     choices = unique(permit_data$GeoLocalArea),  
                                                                     selected = unique(permit_data$GeoLocalArea),
                                                                     options = list(`actions-box` = TRUE),
@@ -51,8 +80,17 @@ ui <- fluidPage("Building Permits",
                                           # select the building type
                                           shinyWidgets::pickerInput(inputId = 'specificUse',
                                                                     label = 'Select the building type:',
-                                                                    choices = c('Multiple Dwelling', 'Rowhouse', 'Duplex', 'Detached House', 'Laneway House', 'Temporary Modular Housing', 'Micro Dwelling'),
+                                                                    choices = unique_SUC,
                                                                     selected = 'Multiple Dwelling',
+                                                                    options = list(`actions-box` = TRUE,
+                                                                                   `liveSearch` = TRUE),
+                                                                    multiple = TRUE),
+                                          
+                                          # select the type of work
+                                          shinyWidgets::pickerInput(inputId = 'type_of_work',
+                                                                    label = 'Type of Work',
+                                                                    choices = unique(permit_data$TypeOfWork),
+                                                                    selected = 'New Building',
                                                                     options = list(`actions-box` = TRUE),
                                                                     multiple = TRUE),
                                           
@@ -76,17 +114,12 @@ ui <- fluidPage("Building Permits",
                                           sliderInput(inputId = 'projectValue',
                                                       label = 'Select the range of project construction costs',
                                                       min = min(permit_data$ProjectValue),
-                                                      max = 250000000, # setting max to 250m so that it's mroe usable
+                                                      max = 250000000, # setting max to 250m so that it's more usable,
+                                                      step = 5000,
                                                       value = c(min(permit_data$ProjectValue), 250000000)
                                           ),
                                           
-                                          # select the type of work
-                                          shinyWidgets::pickerInput(inputId = 'type_of_work',
-                                                                    label = 'Type of Work',
-                                                                    choices = unique(permit_data$TypeOfWork),
-                                                                    selected = 'New Building',
-                                                                    options = list(`actions-box` = TRUE),
-                                                                    multiple = TRUE)
+                                          
                              ),
                              mainPanel(
                                fluidRow(
@@ -117,14 +150,27 @@ ui <- fluidPage("Building Permits",
                              )
                            )
                   ),
-                  tabPanel("Neighbhourhood Analysis"),
+                  tabPanel("Neighbhourhood Analysis",
+                           sidebarLayout(
+                             # Neighbourhood selection for map
+                             sidebarPanel(selectInput(inputId = 'statistic',
+                                                      label = 'Show me...',
+                                                      choices = chlor_ref, #unique(nbhd_data$stat),
+                                                      selected = chlor_ref[1])),
+                             # Chloropleth map
+                             mainPanel(leaflet::leafletOutput(outputId = 'chloropleth',
+                                                              width = "100%",
+                                                              height = 500)))),
                 )
 )
 
 
-# Define server logic required to draw a histogram
+# ==== Server ====
 server <- function(input, output, session) {
   
+  # ===== Filtered Data ====
+  
+  # ==== Detailed Summary tab ====
   filtered_data <- reactive({ 
     # need to filter the data by the inputs
     permit_data |> 
@@ -145,29 +191,47 @@ server <- function(input, output, session) {
                    ) 
   }) 
   
-  
-  output$locations <- leaflet::renderLeaflet({
-    #adding points on basemap
-    locations <- leaflet::leaflet(data = filtered_data())
-    locations <- locations |> 
-      addProviderTiles(providers$Stamen.Toner) |> 
-      addCircleMarkers(lng=~Longitude, lat=~Latitude,stroke = FALSE, fillOpacity = 0.6,
-                       color = 'pink',
-                       weight = 3,
-                       group = 'building locations', 
-                       label = lapply(filtered_data()$label, HTML)
-      )
+  # ==== Neighbourhood tab ====
+  filtered_data2 <- reactive({
+    nbhd_data |>
+      # dplyr::filter(stat == input$statistic)
+      dplyr::filter(stat == input$statistic)
   })
   
   
+  # ==== Visuals ====
   
+  # ==== Point Map ====
+  output$locations <- leaflet::renderLeaflet({
+    locations <- leaflet::leaflet(data = filtered_data())
+    locations <- locations |> 
+      addProviderTiles(providers$CartoDB.Positron) |>
+      addCircleMarkers(lng=~Longitude, 
+                       lat=~Latitude,
+                       stroke = FALSE, 
+                       radius = 4,
+                       color = 'black',
+                       opacity = 1,
+                       fillColor = 'blue',
+                       fillOpacity = 0.9,
+                       weight = 3,
+                       group = 'building locations', 
+                       label = lapply(filtered_data()$label, HTML),
+                       labelOptions = labelOptions(
+                         textsize = "12px"
+                       ),
+                       clusterOptions = markerClusterOptions()
+      )
+  })
+  
+  # ==== Histogram ====
   output$histogram <- renderPlot({
     # adding histogram
     
     ggplot2::ggplot(data = filtered_data(), 
                     ggplot2::aes_string(y = input$selected_variable)
     ) +
-      ggplot2::geom_histogram(fill = "pink",
+      ggplot2::geom_histogram(fill = "blue",
                               bins = 25,
                               alpha = 0.6,
                               color = 'lightgrey'
@@ -178,22 +242,49 @@ server <- function(input, output, session) {
       
   })
   
+  # ==== Line Chart ====
   output$linechart <- renderPlot({
-    # generate timeline charts
+    # generate line charts
 
     ggplot2::ggplot(data = filtered_data(),
                     ggplot2::aes_string(x = 'YearMonth',
-                                 y = input$selected_variable,
-                                 color = input$selected_variable)) +
+                                        y = input$selected_variable,
+                                        color = input$selected_variable)) +
       ggplot2::geom_line(stat = 'summary', fun = sum) +
       ggplot2::scale_y_continuous(labels = scales::comma) +
       ggplot2::theme_classic() +
       ggplot2::theme(legend.position = 'none') +
-      ggplot2::facet_wrap(~filtered_data()[[input$category]]) +
+      # ggplot2::facet_wrap(~filtered_data()[[input$category]]) +
       ggplot2::labs(x = names(plot_group[which(plot_group == input$category)]), 
                     y = names(plot_variable[which(plot_variable == input$selected_variable)]))
   })
   
+  # ==== Chloropleth Map ====
+  output$chloropleth <- leaflet::renderLeaflet({
+    
+    # Create color palette
+    pal <- leaflet::colorNumeric("Blues",
+                                 domain = filtered_data2()$value)
+    
+    # Create reactive map
+    filtered_data2() |>
+      leaflet::leaflet() |>
+      addProviderTiles(providers$CartoDB.Positron) |>
+      addPolygons(
+        fillColor = ~pal(value),
+        weight = 2,
+        opacity = 1,
+        color = "white",
+        fillOpacity = 0.7,
+        label = lapply(filtered_data2()$label, HTML),
+        labelOptions = labelOptions(textsize = "12px"),
+        highlightOptions = highlightOptions(
+          weight = 4,
+          color = "black",
+          fillOpacity = 0.7,
+          bringToFront = TRUE
+        ))
+  })
 }
 
 # Run the application 
