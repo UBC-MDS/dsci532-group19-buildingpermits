@@ -7,8 +7,6 @@ library(htmltools)
 library(leaflet.extras)
 library(sf)
 library(bslib)
-library(plotly)
-library(thematic) 
 
 options(shiny.autoreload = TRUE)
 
@@ -71,122 +69,120 @@ ui <- fluidPage("Building Permits",
                   tabPanel("Spatial Visualisaton of Housing Permit",
                            sidebarLayout(
                              sidebarPanel(
-                                # select the neighbourhood
-                                shinyWidgets::pickerInput(inputId = 'neighbourhood',
-                                                          label = 'Select Neighbourhood:',
-                                                          choices = unique(permit_data$GeoLocalArea),  
-                                                          selected = unique(permit_data$GeoLocalArea),
-                                                          options = list(`actions-box` = TRUE),
-                                                          multiple = T),
-                                
-                                # select the building type
-                                shinyWidgets::pickerInput(inputId = 'specificUse',
-                                                          label = 'Select Building Type:',
-                                                          choices = c(
-                                                            # Common quick-search categories
-                                                            'Detached House', 
-                                                            'Duplex',
-                                                            'Infill',
-                                                            'Laneway House', 
-                                                            'Micro Dwelling', 
-                                                            'Multiple Dwelling', 
-                                                            'Rowhouse',
-                                                            
-                                                            # Specific dwelling categories from the data
-                                                            "Duplex w/Secondary Suite",
-                                                            "Dwelling Unit",
-                                                            "Dwelling Unit w/ Other Use",
-                                                            "Freehold Rowhouse",
-                                                            "Housekeeping Unit",
-                                                            "Infill Multiple Dwelling",
-                                                            "Infill Single Detached House",
-                                                            "Infill Two-Family Dwelling",
-                                                            "Multiple Conv Dwelling w/ Family Suite",
-                                                            "Multiple Conv Dwelling w/ Sec Suite",
-                                                            "Multiple Conversion Dwelling",
-                                                            "Not Applicable",
-                                                            "Principal Dwelling Unit w/Lock Off",
-                                                            "Residential/Business Unit",
-                                                            "Residential Unit Associated w/ an Artist Studio",
-                                                            "Rooming House",
-                                                            "Secondary Suite",
-                                                            "Seniors Supportive/Assisted Housing",
-                                                            "Single Detached House",
-                                                            "Single Detached House w/Sec Suite",
-                                                            "Sleeping Unit",
-                                                            "Temporary Modular Housing",
-                                                            "1FD on Sites w/ More Than One Principal Building",
-                                                            "1FD w/ Family Suite",
-                                                            "2FD on Sites w/ Mult Principal Bldg"),
-                                                          selected = c(
-                                                            # Common inquiry
-                                                            'Multiple Dwelling'),
-                                                          options = list(`actions-box` = TRUE,
-                                                                         `liveSearch` = TRUE),
-                                                          multiple = TRUE),
-                                
-                                # select the type of work
-                                shinyWidgets::pickerInput(inputId = 'type_of_work',
-                                                          label = 'Type of Work',
-                                                          choices = unique(permit_data$TypeOfWork),
-                                                          selected = 'New Building',
-                                                          options = list(`actions-box` = TRUE),
-                                                          multiple = TRUE),
-                                
-                                # select the date range
-                                dateRangeInput(inputId = 'dateRange',
-                                               label = 'Select the range of permit issue dates',
-                                               start  = min(permit_data$IssueDate),
-                                               end = max(permit_data$IssueDate),
-                                               format = "yyyy/mm/dd"),
-                                
-                                # select the permit elapsed days range
-                                sliderInput(inputId = 'elapsedDays',
-                                            label = 'Select the range of days to grant the permit (from submission)',
-                                            min = min(permit_data$PermitElapsedDays),
-                                            max = max(permit_data$PermitElapsedDays),
-                                            step = 5,
-                                            value = c(min(permit_data$PermitElapsedDays), max(permit_data$PermitElapsedDays))
-                                ),
-                                
-                                # select the project value 
-                                sliderInput(inputId = 'projectValue',
-                                            label = 'Select the range of project construction costs',
-                                            min = min(permit_data$ProjectValue),
-                                            max = 250000000, # setting max to 250m so that it's more usable,
-                                            step = 5000,
-                                            value = c(min(permit_data$ProjectValue), 250000000)
-                                ),
-                                
-                                
-                                selectInput(inputId = 'selected_variable', 
-                                            label = "Select variable to plot in charts", 
-                                            choices= plot_variable,
-                                            selected = plot_variable[1]
-                                ),
-                                
+                                          # select the neighbourhood
+                                          shinyWidgets::pickerInput(inputId = 'neighbourhood',
+                                                                    label = 'Select Neighbourhood:',
+                                                                    choices = unique(permit_data$GeoLocalArea),  
+                                                                    selected = unique(permit_data$GeoLocalArea),
+                                                                    options = list(`actions-box` = TRUE),
+                                                                    multiple = T),
+                                          
+                                          # select the building type
+                                          shinyWidgets::pickerInput(inputId = 'specificUse',
+                                                                    label = 'Select Building Type:',
+                                                                    choices = c(
+                                                                      # Common quick-search categories
+                                                                      'Detached House', 
+                                                                      'Duplex',
+                                                                      'Infill',
+                                                                      'Laneway House', 
+                                                                      'Micro Dwelling', 
+                                                                      'Multiple Dwelling', 
+                                                                      'Rowhouse',
+                                                                      # Specific dwelling categories from the data
+                                                                      "Duplex w/Secondary Suite",
+                                                                      "Dwelling Unit",
+                                                                      "Dwelling Unit w/ Other Use",
+                                                                      "Freehold Rowhouse",
+                                                                      "Housekeeping Unit",
+                                                                      "Infill Multiple Dwelling",
+                                                                      "Infill Single Detached House",
+                                                                      "Infill Two-Family Dwelling",
+                                                                      "Multiple Conv Dwelling w/ Family Suite",
+                                                                      "Multiple Conv Dwelling w/ Sec Suite",
+                                                                      "Multiple Conversion Dwelling",
+                                                                      "Not Applicable",
+                                                                      "Principal Dwelling Unit w/Lock Off",
+                                                                      "Residential/Business Unit",
+                                                                      "Residential Unit Associated w/ an Artist Studio",
+                                                                      "Rooming House",
+                                                                      "Secondary Suite",
+                                                                      "Seniors Supportive/Assisted Housing",
+                                                                      "Single Detached House",
+                                                                      "Single Detached House w/Sec Suite",
+                                                                      "Sleeping Unit",
+                                                                      "Temporary Modular Housing",
+                                                                      "1FD on Sites w/ More Than One Principal Building",
+                                                                      "1FD w/ Family Suite",
+                                                                      "2FD on Sites w/ Mult Principal Bldg"),
+                                                                    selected = c(
+                                                                      # Common inquiry
+                                                                      'Multiple Dwelling'),
+                                                                    options = list(`actions-box` = TRUE,
+                                                                                   `liveSearch` = TRUE),
+                                                                    multiple = TRUE),
+                                          
+                                          # select the type of work
+                                          shinyWidgets::pickerInput(inputId = 'type_of_work',
+                                                                    label = 'Type of Work',
+                                                                    choices = unique(permit_data$TypeOfWork),
+                                                                    selected = 'New Building',
+                                                                    options = list(`actions-box` = TRUE),
+                                                                    multiple = TRUE),
+                                          
+                                          # select the date range
+                                          dateRangeInput(inputId = 'dateRange',
+                                                         label = 'Select the range of permit issue dates',
+                                                         start  = min(permit_data$IssueDate),
+                                                         end = max(permit_data$IssueDate),
+                                                         format = "yyyy/mm/dd"),
+                                          
+                                          # select the permit elapsed days range
+                                          sliderInput(inputId = 'elapsedDays',
+                                                      label = 'Select the range of days to grant the permit (from submission)',
+                                                      min = min(permit_data$PermitElapsedDays),
+                                                      max = max(permit_data$PermitElapsedDays),
+                                                      step = 5,
+                                                      value = c(min(permit_data$PermitElapsedDays), max(permit_data$PermitElapsedDays))
+                                          ),
+                                          
+                                          # select the project value 
+                                          sliderInput(inputId = 'projectValue',
+                                                      label = 'Select the range of project construction costs',
+                                                      min = min(permit_data$ProjectValue),
+                                                      max = 250000000, # setting max to 250m so that it's more usable,
+                                                      step = 5000,
+                                                      value = c(min(permit_data$ProjectValue), 250000000)
+                                          ),
+                                          
                                           
                              ),
                              mainPanel(
                                fluidRow(
                                  column(12,
                                         leaflet::leafletOutput(outputId = "locations")),
-                                        ),
+                               ),
                                
                                fluidRow(
-                                   tabsetPanel(
-                                       tabPanel('Histogram of Projects',
-                                         plotlyOutput(outputId = "histogram")
-                                                ),
-                                       tabPanel('Line Charts',
-                                         selectInput(inputId = 'category',
-                                                     label = 'Show selected variable by',
-                                                     choices = plot_group,
-                                                     selected = plot_group[1]
-                                                ),
-                                         plotlyOutput(outputId = 'linechart')
-                                                )
-                                     ))
+                                 column(6,
+                                        selectInput(inputId = 'selected_variable', 
+                                                    label = "Select variable to plot", 
+                                                    choices= plot_variable,
+                                                    selected = plot_variable[1]
+                                                    
+                                        ),
+                                        plotOutput(outputId = "histogram")
+                                        
+                                 ),
+                                 
+                                 column(6,
+                                        selectInput(inputId = 'category',
+                                                    label = 'Show selected variable by',
+                                                    choices = plot_group,
+                                                    selected = plot_group[1]
+                                        ),
+                                        plotOutput(outputId = 'linechart'))
+                               )
                              )
                            )
                   ),
@@ -265,43 +261,37 @@ server <- function(input, output, session) {
   })
   
   # ==== Histogram ====
-  output$histogram <- renderPlotly({
+  output$histogram <- renderPlot({
+    # adding histogram
     
-    plot_hist <- ggplot2::ggplot(data = filtered_data(), 
-                            ggplot2::aes_string(y = input$selected_variable)
+    ggplot2::ggplot(data = filtered_data(), 
+                    ggplot2::aes_string(y = input$selected_variable)
     ) +
       ggplot2::geom_histogram(fill = "blue",
-                              bins = 20,
+                              bins = 25,
                               alpha = 0.6,
                               color = 'lightgrey'
       ) +
       ggplot2::scale_y_continuous(labels = scales::comma) +
       ggplot2::labs(x = 'Project Count by Bin', y = names(plot_variable[which(plot_variable == input$selected_variable)])) +
-      ggplot2::theme_classic()
-    
-    plotly::ggplotly(plot_hist, tooltip = 'count')
-
-     
+      ggplot2::theme_classic() 
+      
   })
   
   # ==== Line Chart ====
-  output$linechart <- renderPlotly({
+  output$linechart <- renderPlot({
     # generate line charts
-    plotly::ggplotly( 
-      ggplot2::ggplot(data = filtered_data(),
-                      ggplot2::aes_string(x = 'YearMonth',
-                                          y = input$selected_variable,
-                                          color = input$category)) +
+    ggplot2::ggplot(data = filtered_data(),
+                    ggplot2::aes_string(x = 'YearMonth',
+                                        y = 'ProjectValue',
+                                        color = input$category)) +
       ggplot2::geom_line(stat = 'summary', fun = mean) +
       ggplot2::scale_y_continuous(labels = scales::comma) +
       ggplot2::theme_classic() +
-      ggplot2::theme(legend.position = 'none',
-                     axis.title.y = element_text(margin = margin(t = 0, r = 14, b = 0, l = 0))) +
+      ggplot2::theme(legend.position = 'none') +
       ggplot2::facet_wrap(~filtered_data()[[input$category]]) +
       ggplot2::labs(x = names(plot_group[which(plot_group == input$category)]), 
                     y = names(plot_variable[which(plot_variable == input$selected_variable)]))
-    )
-    
   })
   
   # ==== Chloropleth Map ====
