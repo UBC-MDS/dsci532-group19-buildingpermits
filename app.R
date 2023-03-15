@@ -5,6 +5,7 @@ library(tidyr)
 library(shinyWidgets)
 library(htmltools)
 library(leaflet.extras)
+library(leaflet.extras2)
 library(sf)
 library(bslib)
 library(plotly)
@@ -132,6 +133,7 @@ ui <- fluidPage("Building Permits",
                                                          selected = 'New Building',
                                                          options = list(`actions-box` = TRUE),
                                                          multiple = TRUE),
+#                               verbatimTextOutput(outputId = "result"),
                                
                                # select the date range
                                dateRangeInput(inputId = 'dateRange',
@@ -245,8 +247,14 @@ server <- function(input, output, session) {
   output$locations <- leaflet::renderLeaflet({
     locations <- leaflet::leaflet(data = filtered_data())
     locations <- locations |> 
-      addProviderTiles(providers$CartoDB.Positron) |>
-      addCircleMarkers(lng=~Longitude, 
+      addTiles(group = "Neighbourhood") |> 
+      addProviderTiles(providers$Esri.WorldImagery, group = "Satellite View") |>
+      addProviderTiles(providers$CartoDB.Positron, group = "Basemap")
+    locations <- locations %>%
+      addLayersControl(
+        baseGroups = c("Basemap","Neighbourhood", "Satellite view"),
+        options = layersControlOptions(collapsed = FALSE)
+      ) |> addCircleMarkers(lng=~Longitude, 
                        lat=~Latitude,
                        stroke = FALSE, 
                        radius = 4,
@@ -254,14 +262,19 @@ server <- function(input, output, session) {
                        opacity = 1,
                        fillColor = 'blue',
                        fillOpacity = 0.9,
+                       
                        weight = 3,
                        group = 'building locations', 
                        label = lapply(filtered_data()$label, HTML),
+                       
                        labelOptions = labelOptions(
                          textsize = "12px"
                        ),
-                       clusterOptions = markerClusterOptions()
-      )
+                       clusterOptions = markerClusterOptions(
+                         disableClusteringAtZoom = 15,
+                         showCoverageOnHover = FALSE,
+                         spiderfyOnMaxZoom = FALSE)
+      ) 
   })
   
   # ==== Histogram ====
@@ -328,7 +341,11 @@ server <- function(input, output, session) {
           color = "black",
           fillOpacity = 0.7,
           bringToFront = TRUE
-        ))
+        )) |> addLegend(position = "bottomright", pal = pal, 
+    values = filtered_data2()$value,
+    title = "Number of Units",
+    labFormat = labelFormat(suffix = " units"),
+    opacity = 0.7)
   })
 }
 
