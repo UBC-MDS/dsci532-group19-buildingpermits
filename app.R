@@ -245,8 +245,14 @@ server <- function(input, output, session) {
   output$locations <- leaflet::renderLeaflet({
     locations <- leaflet::leaflet(data = filtered_data())
     locations <- locations |> 
-      addProviderTiles(providers$CartoDB.Positron) |>
-      addCircleMarkers(lng=~Longitude, 
+      addTiles(group = "Neighbourhood") |> 
+      addProviderTiles(providers$Esri.WorldImagery, group = "Satellite View") |>
+      addProviderTiles(providers$CartoDB.Positron, group = "Basemap")
+    locations <- locations %>%
+      addLayersControl(
+        baseGroups = c("Basemap","Neighbourhood", "Satellite view"),
+        options = layersControlOptions(collapsed = FALSE)
+      ) |> addCircleMarkers(lng=~Longitude, 
                        lat=~Latitude,
                        stroke = FALSE, 
                        radius = 4,
@@ -260,7 +266,7 @@ server <- function(input, output, session) {
                        labelOptions = labelOptions(
                          textsize = "12px"
                        ),
-                       clusterOptions = markerClusterOptions()
+                       clusterOptions = markerClusterOptions(disableClusteringAtZoom = 15 ,showCoverageOnHover = FALSE)
       )
   })
   
