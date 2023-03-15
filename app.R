@@ -11,7 +11,7 @@ library(bslib)
 library(plotly)
 library(thematic) 
 
-options(shiny.autoreload = TRUE)
+options(shiny.autoreload = TRUE) 
 
 # ==== Load Data ====
 
