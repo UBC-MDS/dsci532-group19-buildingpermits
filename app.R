@@ -10,6 +10,7 @@ library(sf)
 library(bslib)
 library(plotly)
 library(thematic) 
+library(DT)
 
 options(shiny.autoreload = TRUE) 
 
@@ -65,7 +66,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                 theme = bslib::bs_theme(bootswatch = "flatly"), #flatly
                 tabsetPanel(
                   tabPanel("Data Explorer",
-                           h4("Expore Building Permit Data"),
+                           h4("Explore Building Permit Data"),
                            p("Use the selection options to dynamically filter data shown in the visualizations. Hover cursor over visuals to see more information."),
                            sidebarLayout(
                              sidebarPanel(
@@ -156,7 +157,10 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                                         selected = plot_group[1]
                                             ),
                                             plotlyOutput(outputId = 'linechart')
-                                   )
+                                   ),
+                                   tabPanel('Building Permit Data',
+                                            DTOutput("table1")),
+                                   
                                  ))
                              )
                            )
@@ -321,6 +325,22 @@ server <- function(input, output, session) {
     )
     
   })
+  
+  
+  # ==== Filtered Data ====
+  #filter data for viewing
+  output$table1 <- renderDT({
+    filtered_data()%>% 
+      select(PermitNumber, IssueDate, ProjectValue,TypeOfWork,IssueYear,PermitElapsedDays,PermitNumberCreatedDate) |> 
+      rename ("Permit No" = "PermitNumber",
+              "Issue Date" = "IssueDate",
+              "Project Value" = "ProjectValue",
+              "Type"= "TypeOfWork",
+              "Issue Year" = "IssueYear",
+              "Days" = "PermitElapsedDays",
+              "Create Date" = "PermitNumberCreatedDate")
+  }, rownames = FALSE, options = list(pageLength = 10))
+  
   
   # ==== Download Data ====
   #Download filtered data and create csv 
