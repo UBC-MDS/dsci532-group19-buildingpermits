@@ -5,7 +5,7 @@
 
 - Authors: Spencer Gerlach, Alex Taciuk, Revathy Ponnambalam, Waiel Tinwala
 
-Shiny App link : https://waielonh.shinyapps.io/dsci532-group19-buildingpermits/
+Shiny App link : https://ataciuk.shinyapps.io/dsci532-group19-buildingpermits/
 
 <img src="img/app-demo_2023-03-04.gif">
 
