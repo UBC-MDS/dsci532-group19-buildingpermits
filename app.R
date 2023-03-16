@@ -74,13 +74,14 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                shinyWidgets::pickerInput(inputId = 'neighbourhood',
                                                          label = 'Select Neighbourhood:',
                                                          choices = sort(unique(permit_data$GeoLocalArea)),
+                                                         selected = unique(permit_data$GeoLocalArea),
                                                          options = list(`actions-box` = TRUE),
                                                          multiple = T),
                                
                                # select the building type
                                shinyWidgets::pickerInput(inputId = 'specificUse',
                                                          label = 'Select Building Type:',
-                                                         choices = c(''),
+                                                         choices = '',
                                                          options = list(`actions-box` = TRUE,
                                                                         `liveSearch` = TRUE),
                                                          multiple = TRUE),
@@ -242,9 +243,11 @@ server <- function(input, output, session) {
   
   # ==== Point Map ====
   output$locations <- leaflet::renderLeaflet({
+    
     req(input$neighbourhood)
     req(input$specificUse)
     req(input$type_of_work)
+    
     locations <- leaflet::leaflet(data = filtered_data(),options = leafletOptions(attributionControl = FALSE))
     locations <- locations |> 
       addTiles(group = "Neighbourhood") |> 
@@ -330,6 +333,11 @@ server <- function(input, output, session) {
   # ==== Filtered Data ====
   #filter data for viewing
   output$table1 <- renderDT({
+    
+    req(input$neighbourhood)
+    req(input$specificUse)
+    req(input$type_of_work)
+    
     filtered_data()%>% 
       select(PermitNumber, IssueDate, ProjectValue,TypeOfWork,IssueYear,PermitElapsedDays,PermitNumberCreatedDate) |> 
       rename ("Permit No" = "PermitNumber",
