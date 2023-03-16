@@ -232,7 +232,7 @@ server <- function(input, output, session) {
     req(input$neighbourhood)
     req(input$specificUse)
     req(input$type_of_work)
-    locations <- leaflet::leaflet(data = filtered_data())
+    locations <- leaflet::leaflet(data = filtered_data(),options = leafletOptions(attributionControl = FALSE))
     locations <- locations |> 
       addTiles(group = "Neighbourhood") |> 
       addProviderTiles(providers$Esri.WorldImagery, group = "Satellite View") |>
