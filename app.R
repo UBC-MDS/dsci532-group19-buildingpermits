@@ -10,6 +10,7 @@ library(sf)
 library(bslib)
 library(plotly)
 library(thematic) 
+library(DT)
 
 options(shiny.autoreload = TRUE) 
 
@@ -65,7 +66,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                 theme = bslib::bs_theme(bootswatch = "flatly"), #flatly
                 tabsetPanel(
                   tabPanel("Data Explorer",
-                           h4("Expore Building Permit Data"),
+                           h4("Explore Building Permit Data"),
                            p("Use the selection options to dynamically filter data shown in the visualizations. Hover cursor over visuals to see more information."),
                            sidebarLayout(
                              sidebarPanel(
@@ -127,7 +128,16 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                            selected = plot_variable[1]
                                ),
                                
-                               
+                              downloadButton("downloadCSV", "Download CSV", class = "small-download-button"),
+                              tags$style(HTML("
+                                  .small-download-button {
+                                    padding: 0.2rem 0.4rem;
+                                    font-size: 0.8rem;
+                                    line-height: 1.2;
+                                  }
+                                ")),
+                            downloadButton("downloadJSON", "Download JSON", class = "small-download-button")
+                            
                              ),
                              mainPanel(
                                fluidRow(
@@ -147,7 +157,10 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                                         selected = plot_group[1]
                                             ),
                                             plotlyOutput(outputId = 'linechart')
-                                   )
+                                   ),
+                                   tabPanel('Building Permit Data',
+                                            DTOutput("table1")),
+                                   
                                  ))
                              )
                            )
@@ -232,7 +245,7 @@ server <- function(input, output, session) {
     req(input$neighbourhood)
     req(input$specificUse)
     req(input$type_of_work)
-    locations <- leaflet::leaflet(data = filtered_data())
+    locations <- leaflet::leaflet(data = filtered_data(),options = leafletOptions(attributionControl = FALSE))
     locations <- locations |> 
       addTiles(group = "Neighbourhood") |> 
       addProviderTiles(providers$Esri.WorldImagery, group = "Satellite View") |>
@@ -312,6 +325,47 @@ server <- function(input, output, session) {
     )
     
   })
+  
+  
+  # ==== Filtered Data ====
+  #filter data for viewing
+  output$table1 <- renderDT({
+    filtered_data()%>% 
+      select(PermitNumber, IssueDate, ProjectValue,TypeOfWork,IssueYear,PermitElapsedDays,PermitNumberCreatedDate) |> 
+      rename ("Permit No" = "PermitNumber",
+              "Issue Date" = "IssueDate",
+              "Project Value" = "ProjectValue",
+              "Type"= "TypeOfWork",
+              "Issue Year" = "IssueYear",
+              "Days" = "PermitElapsedDays",
+              "Create Date" = "PermitNumberCreatedDate")
+  }, rownames = FALSE, options = list(pageLength = 10))
+  
+  
+  # ==== Download Data ====
+  #Download filtered data and create csv 
+  
+  # CSV download handler
+  output$downloadCSV <- downloadHandler(
+    filename = function() {
+      paste("Permit_data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(filtered_data(), file)
+    }
+  )
+  
+  # JSON download handler
+  output$downloadJSON <- downloadHandler(
+    filename = "Permit_data.json",
+    content = function(file) {
+      # Convert data to JSON format
+      my_data_json <- jsonlite::toJSON(filtered_data())
+      # Write JSON to file
+      writeLines(my_data_json, file)
+    }
+  )
+  
   
   # ==== Chloropleth Map ====
   output$chloropleth <- leaflet::renderLeaflet({
