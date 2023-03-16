@@ -20,11 +20,6 @@ permit_data <- read.csv('data/clean/permit_cleaned.csv')
 # Formatting
 permit_data$ProjectValue <- as.numeric(permit_data$ProjectValue)
 permit_data$YearMonth <- lubridate::ymd(permit_data$YearMonth)
-# unique_SUC <- permit_data |>
-#   tidyr::separate_rows(SpecificUseCategory, sep = ",") |>
-#   dplyr::distinct(SpecificUseCategory)
-# unique_SUC <- sort(unique_SUC$SpecificUseCategory)
-# unique_SUC <- tibble('SpecificUseCategory' = unique_SUC)
 
 # Neighbourhood Data 
 nbhd_data <- sf::st_read("data/clean/geo_nbhd_summary_long.geojson")
@@ -78,52 +73,13 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                shinyWidgets::pickerInput(inputId = 'neighbourhood',
                                                          label = 'Select Neighbourhood:',
                                                          choices = sort(unique(permit_data$GeoLocalArea)),
-                                                         selected = sort(unique(permit_data$GeoLocalArea))[1:6],
                                                          options = list(`actions-box` = TRUE),
                                                          multiple = T),
                                
                                # select the building type
                                shinyWidgets::pickerInput(inputId = 'specificUse',
                                                          label = 'Select Building Type:',
-                                                         choices = c(
-                                                           # Common quick-search categories
-                                                           'Detached House', 
-                                                           'Duplex',
-                                                           'Infill',
-                                                           'Laneway House', 
-                                                           'Micro Dwelling', 
-                                                           'Multiple Dwelling', 
-                                                           'Rowhouse',
-                                                           
-                                                           # Specific dwelling categories from the data
-                                                           "Duplex w/Secondary Suite",
-                                                           "Dwelling Unit",
-                                                           "Dwelling Unit w/ Other Use",
-                                                           "Freehold Rowhouse",
-                                                           "Housekeeping Unit",
-                                                           "Infill Multiple Dwelling",
-                                                           "Infill Single Detached House",
-                                                           "Infill Two-Family Dwelling",
-                                                           "Multiple Conv Dwelling w/ Family Suite",
-                                                           "Multiple Conv Dwelling w/ Sec Suite",
-                                                           "Multiple Conversion Dwelling",
-                                                           "Not Applicable",
-                                                           "Principal Dwelling Unit w/Lock Off",
-                                                           "Residential/Business Unit",
-                                                           "Residential Unit Associated w/ an Artist Studio",
-                                                           "Rooming House",
-                                                           "Secondary Suite",
-                                                           "Seniors Supportive/Assisted Housing",
-                                                           "Single Detached House",
-                                                           "Single Detached House w/Sec Suite",
-                                                           "Sleeping Unit",
-                                                           "Temporary Modular Housing",
-                                                           "1FD on Sites w/ More Than One Principal Building",
-                                                           "1FD w/ Family Suite",
-                                                           "2FD on Sites w/ Mult Principal Bldg"),
-                                                         selected = c(
-                                                           # Common inquiry
-                                                           'Multiple Dwelling'),
+                                                         choices = c(''),
                                                          options = list(`actions-box` = TRUE,
                                                                         `liveSearch` = TRUE),
                                                          multiple = TRUE),
@@ -142,6 +98,8 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                               label = 'Select the range of permit issue dates',
                                               start  = min(permit_data$IssueDate),
                                               end = max(permit_data$IssueDate),
+                                              min = min(permit_data$IssueDate),
+                                              max = max(permit_data$IssueDate),
                                               format = "yyyy/mm/dd"),
                                
                                # select the permit elapsed days range
@@ -222,12 +180,29 @@ server <- function(input, output, session) {
   # ===== Filtered Data ====
   
   # ==== Detailed Summary tab ====
+  filtered_area <- reactive({
+    permit_data |>
+      dplyr::filter(GeoLocalArea %in% input$neighbourhood) # neighbourhood filter
+  })
+  
+  # need to obtain updated choices for Building Type
+  unique_SUC <- reactive({
+    filtered_area() |>
+      tidyr::separate_rows(SpecificUseCategory, sep = ',') |>
+      dplyr::distinct(SpecificUseCategory)
+  })
+  
+  observeEvent(input$neighbourhood, {
+    updatePickerInput(session,
+                      inputId = 'specificUse',
+                      choices = unique_SUC()$SpecificUseCategory,
+                      selected = unique_SUC()$SpecificUseCategory[1])
+  })
+  
   filtered_data <- reactive({ 
     # need to filter the data by the inputs
-    permit_data |> 
-      dplyr::filter(GeoLocalArea %in% input$neighbourhood,  # neighbourhood
-                    
-                    SpecificUseCategory %in% unique(as.vector(permit_data$SpecificUseCategory[stringr::str_detect(permit_data$SpecificUseCategory, input$specificUse)])),
+    filtered_area() |> 
+      dplyr::filter(SpecificUseCategory %in% unique(as.vector(permit_data$SpecificUseCategory[stringr::str_detect(permit_data$SpecificUseCategory, input$specificUse)])),
                     
                     input$dateRange[2] > IssueDate, # date range
                     IssueDate > input$dateRange[1], 
@@ -254,6 +229,9 @@ server <- function(input, output, session) {
   
   # ==== Point Map ====
   output$locations <- leaflet::renderLeaflet({
+    req(input$neighbourhood)
+    req(input$specificUse)
+    req(input$type_of_work)
     locations <- leaflet::leaflet(data = filtered_data())
     locations <- locations |> 
       addTiles(group = "Neighbourhood") |> 
@@ -289,6 +267,10 @@ server <- function(input, output, session) {
   # ==== Histogram ====
   output$histogram <- renderPlotly({
     
+    req(input$neighbourhood)
+    req(input$specificUse)
+    req(input$type_of_work)
+    
     plot_hist <- ggplot2::ggplot(data = filtered_data(), 
                                  ggplot2::aes_string(y = input$selected_variable)
     ) +
@@ -308,6 +290,11 @@ server <- function(input, output, session) {
   
   # ==== Line Chart ====
   output$linechart <- renderPlotly({
+    
+    req(input$neighbourhood)
+    req(input$specificUse)
+    req(input$type_of_work)
+    
     # generate line charts
     plotly::ggplotly( 
       ggplot2::ggplot(data = filtered_data(),
