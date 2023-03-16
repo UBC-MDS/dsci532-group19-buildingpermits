@@ -1,3 +1,6 @@
+[![App Deploys](https://github.com/UBC-MDS/dsci532-group19-buildingpermits/actions/workflows/deploy-app.yaml/badge.svg)](https://github.com/UBC-MDS/dsci532-group19-buildingpermits/actions/workflows/deploy-app.yaml)
+[![App Deploys](https://github.com/UBC-MDS/dsci532-group19-buildingpermits/actions/workflows/testing.yaml/badge.svg)](https://github.com/UBC-MDS/dsci532-group19-buildingpermits/actions/workflows/testing.yaml)
+
 # Vancouver Building Permit Exploration
 
 - Authors: Spencer Gerlach, Alex Taciuk, Revathy Ponnambalam, Waiel Tinwala
