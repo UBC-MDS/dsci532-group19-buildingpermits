@@ -66,17 +66,19 @@ chlor_ref <- c('Building Permit Count' = 'count_permits',
 
 
 # ==== UI ====
-ui <- fluidPage("Building Permits",
-                theme = bslib::bs_theme(bootswatch = "flatly"),
+ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
+                theme = bslib::bs_theme(bootswatch = "flatly"), #flatly
                 tabsetPanel(
-                  tabPanel("Spatial Visualisaton of Housing Permit",
+                  tabPanel("Data Explorer",
+                           h4("Expore Building Permit Data"),
+                           p("Use the selection options to dynamically filter data shown in the visualizations. Hover cursor over visuals to see more information."),
                            sidebarLayout(
                              sidebarPanel(
                                # select the neighbourhood
                                shinyWidgets::pickerInput(inputId = 'neighbourhood',
                                                          label = 'Select Neighbourhood:',
-                                                         choices = unique(permit_data$GeoLocalArea),  
-                                                         selected = unique(permit_data$GeoLocalArea),
+                                                         choices = sort(unique(permit_data$GeoLocalArea)),
+                                                         selected = sort(unique(permit_data$GeoLocalArea))[1:6],
                                                          options = list(`actions-box` = TRUE),
                                                          multiple = T),
                                
@@ -130,7 +132,7 @@ ui <- fluidPage("Building Permits",
                                shinyWidgets::pickerInput(inputId = 'type_of_work',
                                                          label = 'Type of Work',
                                                          choices = unique(permit_data$TypeOfWork),
-                                                         selected = 'New Building',
+                                                         selected = c('New Building'),
                                                          options = list(`actions-box` = TRUE),
                                                          multiple = TRUE),
 #                               verbatimTextOutput(outputId = "result"),
@@ -192,17 +194,24 @@ ui <- fluidPage("Building Permits",
                              )
                            )
                   ),
-                  tabPanel("Neighbhourhood Analysis",
-                           sidebarLayout(
-                             # Neighbourhood selection for map
-                             sidebarPanel(selectInput(inputId = 'statistic',
-                                                      label = 'Show me...',
-                                                      choices = chlor_ref, #unique(nbhd_data$stat),
-                                                      selected = chlor_ref[1])),
-                             # Chloropleth map
-                             mainPanel(leaflet::leafletOutput(outputId = 'chloropleth',
-                                                              width = "100%",
-                                                              height = 500)))),
+                  tabPanel("Neighbourhood Map",
+                           h4("Neighbourhood Summary Map"),
+                           p("Use the drop-down to select a summary statistic.  Hover cursor over neighbourhoods to see values."),
+                           # Chloropleth map
+                           leaflet::leafletOutput(outputId = 'chloropleth',
+                                                   width = "100%",
+                                                   height = "600px"),
+                           absolutePanel(id = "testpanel", class = "panel panel-default", fixed = TRUE,
+                                         draggable=TRUE, top = 230, left = "auto", right = -500, bottom = "auto",
+                                         width = 800, height = "200",
+                                         sidebarPanel(selectInput(inputId = 'statistic',
+                                                                  label = 'Summary Statistic Shown:',
+                                                                  choices = chlor_ref,
+                                                                  selected = chlor_ref[1]
+                                                                  )
+                                                      )
+                                         )
+                           )
                 )
 )
 
@@ -341,11 +350,11 @@ server <- function(input, output, session) {
           color = "black",
           fillOpacity = 0.7,
           bringToFront = TRUE
-        )) |> addLegend(position = "bottomright", pal = pal, 
-    values = filtered_data2()$value,
-    title = "Number of Units",
-    labFormat = labelFormat(suffix = " units"),
-    opacity = 0.7)
+        )) |> addLegend(position = "bottomleft", pal = pal, 
+                        values = filtered_data2()$value,
+                        title = "Statistic Value:",
+                        opacity = 0.7) |>
+      setView(lng=-123.108456, lat=49.247406, zoom = 12)
   })
 }
 
