@@ -127,7 +127,16 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                            selected = plot_variable[1]
                                ),
                                
-                               
+                              downloadButton("downloadCSV", "Download CSV", class = "small-download-button"),
+                              tags$style(HTML("
+                                  .small-download-button {
+                                    padding: 0.2rem 0.4rem;
+                                    font-size: 0.8rem;
+                                    line-height: 1.2;
+                                  }
+                                ")),
+                            downloadButton("downloadJSON", "Download JSON", class = "small-download-button")
+                            
                              ),
                              mainPanel(
                                fluidRow(
@@ -312,6 +321,31 @@ server <- function(input, output, session) {
     )
     
   })
+  
+  # ==== Download Data ====
+  #Download filtered data and create csv 
+  
+  # CSV download handler
+  output$downloadCSV <- downloadHandler(
+    filename = function() {
+      paste("Permit_data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(filtered_data(), file)
+    }
+  )
+  
+  # JSON download handler
+  output$downloadJSON <- downloadHandler(
+    filename = "Permit_data.json",
+    content = function(file) {
+      # Convert data to JSON format
+      my_data_json <- jsonlite::toJSON(filtered_data())
+      # Write JSON to file
+      writeLines(my_data_json, file)
+    }
+  )
+  
   
   # ==== Chloropleth Map ====
   output$chloropleth <- leaflet::renderLeaflet({
