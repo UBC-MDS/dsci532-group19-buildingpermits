@@ -122,13 +122,10 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                                          multiple = TRUE),
                                
                                # select the type of work
-                               shinyWidgets::pickerInput(inputId = 'type_of_work',
-                                                         label = 'Type of Work',
-                                                         choices = unique(permit_data$TypeOfWork),
-                                                         selected = c('New Building'),
-                                                         options = list(`actions-box` = TRUE),
-                                                         multiple = TRUE),
-#                               verbatimTextOutput(outputId = "result"),
+                               radioButtons(inputId = 'type_of_work',
+                                            label = 'Type of Work',
+                                            choices = unique(permit_data$TypeOfWork),
+                                            selected = c('New Building')),
                                
                                # select the date range
                                dateRangeInput(inputId = 'dateRange',
