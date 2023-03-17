@@ -195,7 +195,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                             plotlyOutput(outputId = 'linechart')
                                    ),
                                    tabPanel('Building Permit Data',
-                                            DTOutput("table1")),
+                                            DT::DTOutput("table1")),
                                    
                                  ))
                              )
@@ -378,7 +378,7 @@ server <- function(input, output, session) {
   
   # ==== Filtered Data ====
   #filter data for viewing
-  output$table1 <- renderDT({
+  output$table1 <- DT::renderDT({
     
     req(input$neighbourhood)
     req(input$specificUse)
