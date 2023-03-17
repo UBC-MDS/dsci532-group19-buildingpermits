@@ -65,6 +65,7 @@ chlor_ref <- c('Building Permit Count' = 'count_permits',
 ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                 theme = bslib::bs_theme(bootswatch = "flatly"), #flatly
                 tabsetPanel(
+                  id = 'tabs1',
                   tabPanel("Data Explorer",
                            h4("Explore Building Permit Data"),
                            p("Use the selection options to dynamically filter data shown in the visualizations. Hover cursor over visuals to see more information."),
@@ -181,6 +182,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                
                                fluidRow(
                                  tabsetPanel(
+                                   id = 'tabs2',
                                    tabPanel('Histogram of Projects',
                                             plotlyOutput(outputId = "histogram")
                                    ),
