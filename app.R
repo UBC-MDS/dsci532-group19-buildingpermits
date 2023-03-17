@@ -81,7 +81,42 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                # select the building type
                                shinyWidgets::pickerInput(inputId = 'specificUse',
                                                          label = 'Select Building Type:',
-                                                         choices = '',
+                                                         choices = c(
+                                                           # Common quick-search categories
+                                                           'Detached House', 
+                                                           'Duplex',
+                                                           'Infill',
+                                                           'Laneway House', 
+                                                           'Micro Dwelling', 
+                                                           'Multiple Dwelling', 
+                                                           'Rowhouse',
+                                                           
+                                                           # Specific dwelling categories from the data
+                                                           "Duplex w/Secondary Suite",
+                                                           "Dwelling Unit",
+                                                           "Dwelling Unit w/ Other Use",
+                                                           "Freehold Rowhouse",
+                                                           "Housekeeping Unit",
+                                                           "Infill Multiple Dwelling",
+                                                           "Infill Single Detached House",
+                                                           "Infill Two-Family Dwelling",
+                                                           "Multiple Conv Dwelling w/ Family Suite",
+                                                           "Multiple Conv Dwelling w/ Sec Suite",
+                                                           "Multiple Conversion Dwelling",
+                                                           "Not Applicable",
+                                                           "Principal Dwelling Unit w/Lock Off",
+                                                           "Residential/Business Unit",
+                                                           "Residential Unit Associated w/ an Artist Studio",
+                                                           "Rooming House",
+                                                           "Secondary Suite",
+                                                           "Seniors Supportive/Assisted Housing",
+                                                           "Single Detached House",
+                                                           "Single Detached House w/Sec Suite",
+                                                           "Sleeping Unit",
+                                                           "Temporary Modular Housing",
+                                                           "1FD on Sites w/ More Than One Principal Building",
+                                                           "1FD w/ Family Suite",
+                                                           "2FD on Sites w/ Mult Principal Bldg"),
                                                          options = list(`actions-box` = TRUE,
                                                                         `liveSearch` = TRUE),
                                                          multiple = TRUE),
@@ -194,29 +229,27 @@ server <- function(input, output, session) {
   # ===== Filtered Data ====
   
   # ==== Detailed Summary tab ====
-  filtered_area <- reactive({
-    permit_data |>
-      dplyr::filter(GeoLocalArea %in% input$neighbourhood) # neighbourhood filter
-  })
-  
+
   # need to obtain updated choices for Building Type
-  unique_SUC <- reactive({
-    filtered_area() |>
-      tidyr::separate_rows(SpecificUseCategory, sep = ',') |>
-      dplyr::distinct(SpecificUseCategory)
-  })
+  # unique_SUC <- reactive({
+  #   filtered_area() |>
+  #     tidyr::separate_rows(SpecificUseCategory, sep = ',') |>
+  #     dplyr::distinct(SpecificUseCategory)
+  # })
   
-  observeEvent(input$neighbourhood, {
-    updatePickerInput(session,
-                      inputId = 'specificUse',
-                      choices = unique_SUC()$SpecificUseCategory,
-                      selected = unique_SUC()$SpecificUseCategory[1])
-  })
+  # observeEvent(input$neighbourhood, {
+  #   updatePickerInput(session,
+  #                     inputId = 'specificUse',
+  #                     choices = unique_SUC()$SpecificUseCategory,
+  #                     selected = unique_SUC()$SpecificUseCategory[1])
+  # })
   
   filtered_data <- reactive({ 
     # need to filter the data by the inputs
-    filtered_area() |> 
-      dplyr::filter(SpecificUseCategory %in% unique(as.vector(permit_data$SpecificUseCategory[stringr::str_detect(permit_data$SpecificUseCategory, input$specificUse)])),
+    filter <- permit_data |> 
+      dplyr::filter(GeoLocalArea %in% input$neighbourhood, # neighbourhood filter
+                    
+                    SpecificUseCategory %in% unique(as.vector(permit_data$SpecificUseCategory[stringr::str_detect(permit_data$SpecificUseCategory, input$specificUse)])),
                     
                     input$dateRange[2] > IssueDate, # date range
                     IssueDate > input$dateRange[1], 
@@ -228,8 +261,21 @@ server <- function(input, output, session) {
                     ProjectValue > input$projectValue[1],
                     
                     TypeOfWork %in% input$type_of_work # type of work
-      ) 
-  }) 
+      )
+    validate(
+      missing_values(filter)
+    )
+    
+    filter
+  })
+  
+  missing_values <- function(input) {
+    if (nrow(input) == 0) {
+      "No data is available for the selected inputs. please change inputs to refresh the map and plots"
+    } else {
+      NULL
+    }
+  }
   
   # ==== Neighbourhood tab ====
   filtered_data2 <- reactive({
