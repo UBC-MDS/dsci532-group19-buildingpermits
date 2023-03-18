@@ -68,7 +68,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                   id = 'tabs1',
                   tabPanel("Data Explorer",
                            h4("Explore Building Permit Data"),
-                           p("Use the selection options to dynamically filter data shown in the visualizations. Hover cursor over visuals to see more information."),
+                           p("Use the selection options to filter the data shown in the visualizations. Hover cursor over visuals to see more information."),
                            sidebarLayout(
                              sidebarPanel(
                                # select the neighbourhood
@@ -125,13 +125,13 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                
                                # select the type of work
                                radioButtons(inputId = 'type_of_work',
-                                            label = 'Type of Work',
+                                            label = 'Type of Work:',
                                             choices = unique(permit_data$TypeOfWork),
                                             selected = c('New Building')),
                                
                                # select the date range
                                dateRangeInput(inputId = 'dateRange',
-                                              label = 'Select the range of permit issue dates',
+                                              label = 'Select the range of permit issue dates:',
                                               start  = min(permit_data$IssueDate),
                                               end = max(permit_data$IssueDate),
                                               min = min(permit_data$IssueDate),
@@ -140,7 +140,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                
                                # select the permit elapsed days range
                                sliderInput(inputId = 'elapsedDays',
-                                           label = 'Select the range of days to grant the permit (from submission)',
+                                           label = 'Select the range of days to grant the permit (from submission):',
                                            min = min(permit_data$PermitElapsedDays),
                                            max = max(permit_data$PermitElapsedDays),
                                            step = 5,
@@ -149,7 +149,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                
                                # select the project value 
                                sliderInput(inputId = 'projectValue',
-                                           label = 'Select the range of project construction costs',
+                                           label = 'Select the range of project construction costs:',
                                            min = min(permit_data$ProjectValue),
                                            max = 250000000, # setting max to 250m so that it's more usable,
                                            step = 5000,
@@ -158,7 +158,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                
                                
                                selectInput(inputId = 'selected_variable', 
-                                           label = "Select variable to plot in charts", 
+                                           label = "Select variable to plot in charts:", 
                                            choices= plot_variable,
                                            selected = plot_variable[1]
                                ),
@@ -192,7 +192,7 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                    ),
                                    tabPanel('Line Charts',
                                             selectInput(inputId = 'category',
-                                                        label = 'Show selected variable by',
+                                                        label = 'Show selected variable by:',
                                                         choices = plot_group,
                                                         selected = plot_group[1]
                                             ),
