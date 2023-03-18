@@ -218,7 +218,12 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                                                   )
                                                       )
                                          )
-                           )
+                           ),
+                  tabPanel("About",
+                           h4("About"),
+                           p("Check out our project ", a("GitHub", href="https://github.com/UBC-MDS/dsci532-group19-buildingpermits")),
+                           p("The original dataset is from ", a("Vancouver's Open Data Portal", href="https://opendata.vancouver.ca/explore/dataset/issued-building-permits/information/"), "under the Vancouver Open Government License."),
+                  )
                 )
 )
 
