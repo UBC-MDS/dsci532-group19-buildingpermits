@@ -177,14 +177,18 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                              mainPanel(
                                fluidRow(
                                  column(12,
-                                        leaflet::leafletOutput(outputId = "locations")),
+                                        shinycssloaders::withSpinner(
+                                          leaflet::leafletOutput(outputId = "locations")),
+                                         )
                                ),
                                
                                fluidRow(
                                  tabsetPanel(
                                    id = 'tabs2',
                                    tabPanel('Histogram of Projects',
-                                            plotlyOutput(outputId = "histogram")
+                                            shinycssloaders::withSpinner(
+                                              plotlyOutput(outputId = "histogram")
+                                            )
                                    ),
                                    tabPanel('Line Charts',
                                             selectInput(inputId = 'category',
@@ -192,10 +196,12 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                                         choices = plot_group,
                                                         selected = plot_group[1]
                                             ),
-                                            plotlyOutput(outputId = 'linechart')
+                                            shinycssloaders::withSpinner(
+                                              plotlyOutput(outputId = 'linechart')
+                                            )
                                    ),
                                    tabPanel('Building Permit Data',
-                                            DT::DTOutput("table1")),
+                                            shinycssloaders::withSpinner(DT::DTOutput("table1"))),
                                    
                                  ))
                              )
@@ -205,9 +211,11 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                            h4("Neighbourhood Summary Map"),
                            p("Use the drop-down to select a summary statistic.  Hover cursor over neighbourhoods to see values."),
                            # Chloropleth map
-                           leaflet::leafletOutput(outputId = 'chloropleth',
+                           shinycssloaders::withSpinner(
+                            leaflet::leafletOutput(outputId = 'chloropleth',
                                                    width = "100%",
-                                                   height = "600px"),
+                                                   height = "600px")
+                            ),
                            absolutePanel(id = "testpanel", class = "panel panel-default", fixed = TRUE,
                                          draggable=TRUE, top = 230, left = "auto", right = -500, bottom = "auto",
                                          width = 800, height = "200",
@@ -218,7 +226,12 @@ ui <- fluidPage(h3("Vancouver Building Permit Explorer"),
                                                                   )
                                                       )
                                          )
-                           )
+                ),
+                tabPanel("About",
+                         h4("About"),
+                         p("Check out our project ", a("GitHub", href="https://github.com/UBC-MDS/dsci532-group19-buildingpermits")),
+                         p("The original dataset is from ", a("Vancouver's Open Data Portal", href="https://opendata.vancouver.ca/explore/dataset/issued-building-permits/information/"), "under the Vancouver Open Government License."),
+                )
                 )
 )
 
